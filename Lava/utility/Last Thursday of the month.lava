@@ -1,0 +1,17 @@
+//- ----------------------------------------------------------
+//- Author:   Luke Taylor
+//- Create Date: 7/3/2024
+//- Description: Given a date in the 'today' variable, returns
+//- the date of the last Thursday of the month of that date
+//- ----------------------------------------------------------
+
+{% assign today = 'Now' | Date %}
+{% assign date = today | Date:'M/28/yyyy' %}
+{% assign dateMonth = date | Date:'M' %}
+{% assign dateSundayThursday = date | SundayDate | DateAdd:'-3' %}
+{% assign dateSundayThursdayMonth = dateSundayThursday | Date:'M' %}
+{% if dateMonth != dateSundayThursdayMonth %}
+    {% assign dateSundayThursday = dateSundayThursday | DateAdd:'-7' %}
+{% endif %}
+
+{{ dateSundayThursday }}
