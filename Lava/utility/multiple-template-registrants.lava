@@ -1,0 +1,65 @@
+//- ----------------------------------------------------------------------------------------------------
+//- Author:       Luke Taylor
+//- Create Date:  May 30, 2025
+//- Description: Shows any people who have more than one registrant record in a given registration template
+//- 
+//- Change History:
+//-   
+//- ----------------------------------------------------------------------------------------------------
+
+{% assign templateId = 57 %}
+
+//- ---------------------------------
+
+{[ panel title:'Duplicate Registrations' type:'block' ]}
+    <div class="grid grid-panel">
+        <table class="grid-table table table-bordered table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>Person</th>
+                    <th>Registrations</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                /-  Find everyone who is registered for any instances using the template.
+                
+                    Provide their PersonId, Name, number of registrations, and an array of the Registration Instance name, Date/Time they were registered, and RegistrationId, so we can show information and assemble links.
+                    
+                    Note: this requires the Fluid lava engine (required by v17)
+                -/
+
+                {% registrationregistrant
+                    expression:'Registration.RegistrationInstance.RegistrationTemplateId == "{{ templateId }}"'
+                    groupby:'new ( PersonAlias.PersonId AS PersonId, PersonAlias.Person.FullName AS FullName )'
+                    select:'new ( Key.PersonId, Key.FullName, Count() AS RegistrationCount, Select ( new ( Registration.RegistrationInstance.Name AS Name, Registration.RegistrationInstance.Id AS Id, Registration.Id AS RegistrationId, Registration.CreatedDateTime AS RegistrationDateTime )) AS RegistrationInstances )'
+                    iterator:'people'
+                %}
+                    
+                    /-  The entity command gives us ALL registrants.
+                        
+                        We only want to show people where their RegistrationCount is not equal to 1.
+                        (Since people with 0 registrations won't be listed, that's functionally the same as "greater than 1").
+                        
+                        So use the Where filter to get just those records from the results.
+                    -/
+                    
+                    {% assign dups = people | Where:'RegistrationCount','1','notequal' %}
+                    {% for p in dups %}
+                        <tr>
+                            <td><a href="/person/{{ p.PersonId }}">{{ p.FullName }}</a></td>
+                            <td>
+                                {% for reg in p.RegistrationInstances %}
+                                    <a href="/web/event-registrations/{{ reg.Id }}/registration/{{ reg.RegistrationId }}">{{ reg.Name }}</a>
+                                    ({{ reg.RegistrationDateTime | Date:'M/d h:mm tt' }})
+                                    {% if forloop.last != true %}<br>{% endif %}
+                                {% endfor %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    
+                {% endregistrationregistrant %}
+            </tbody>
+        </table>
+    </div>
+{[ endpanel ]}
