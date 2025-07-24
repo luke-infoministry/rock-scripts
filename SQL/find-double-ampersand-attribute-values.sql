@@ -13,6 +13,9 @@ SELECT
     , a.[Name] AS [Attribute]
     , a.[EntityTypeQualifierColumn]
     , a.[EntityTypeQualifierValue]
+    , wt.[Id] AS [WorkflowTypeId]
+    , wt.[Name] AS [WorkflowType]
+    , wact.[Name] AS [ActivityType]
     , wat.[Name] AS [WorkflowActionType]
     , av.[EntityId]
     , av.[Value]
@@ -21,6 +24,8 @@ FROM
     INNER JOIN [Attribute] a ON a.[Id] = av.[AttributeId]
     INNER JOIN [EntityType] et ON et.[Id] = a.[EntityTypeId]
     LEFT OUTER JOIN [WorkflowActionType] wat ON wat.[Id] = av.[EntityId]
+    LEFT OUTER JOIN [WorkflowActivityType] wact ON wact.[Id] = wat.[ActivityTypeId]
+    LEFT OUTER JOIN [WorkflowType] wt ON wt.[Id] = wact.[WorkflowTypeId]
 WHERE
     -- find {% if or {%- if
     (CHARINDEX('{% if', [Value]) > 0 OR CHARINDEX('{%- if', [Value]) > 0)
